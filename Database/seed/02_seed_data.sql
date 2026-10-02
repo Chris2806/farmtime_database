@@ -77,6 +77,20 @@ INSERT INTO audit_logs (table_name, record_id, action, reason, changed_by, adjus
 SELECT 'time_events', event_id, 'UPDATE', reason, approver, adjustment_id
 FROM time_adjustments WHERE status = 'Approved';
 
+-- Phase 1 Step 4: roles, patterned hours, registration PIN, roster team/site
+INSERT INTO staff (first_name, last_name, contract_type, standard_hours, role, standard_rate, overtime_rate, credential_ref, system_role) VALUES
+('Alex', 'Morgan', 'Full Time', 38, 'Office Admin', 35.00, 52.50, 'PIN-3001', 'Office Admin'),
+('Taylor', 'Brooks', 'Full Time', 38, 'Roster Admin', 34.00, 51.00, 'PIN-3002', 'Roster Admin');
+
+UPDATE staff SET system_role = 'Manager/Supervisor' WHERE staff_id = 2;
+
+UPDATE staff SET hours_type = 'Patterned', pattern_days = 'Mon-Thu', pattern_start = '09:00', pattern_end = '14:00' WHERE staff_id = 3;
+
+UPDATE staff SET registration_pin = '482916', pin_expires_at = now() + interval '72 hours' WHERE staff_id = 1;
+
+UPDATE roster SET team = 'Orchard', site = 'Main Farm' WHERE staff_id IN (1, 2);
+UPDATE roster SET team = 'Packing', site = 'Shed 2' WHERE staff_id = 3;
+
 -- Verification: confirm row counts match expectations
 SELECT 'staff' AS tbl, COUNT(*) FROM staff
 UNION ALL
