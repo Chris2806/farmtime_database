@@ -1,4 +1,4 @@
-TRUNCATE TABLE breaks, payroll_summary, time_events, compliance_rules, roster, break_reasons, stations, staff, audit_logs RESTART IDENTITY CASCADE;
+TRUNCATE TABLE exceptions, breaks, payroll_summary, time_events, compliance_rules, roster, break_reasons, stations, staff, audit_logs RESTART IDENTITY CASCADE;
 
 INSERT INTO stations (name, location, id_type) VALUES
 ('Main Gate', 'Farm Entrance', 'QR'),
@@ -18,7 +18,8 @@ INSERT INTO break_reasons (label, is_paid) VALUES
 ('Meal', FALSE), ('Rest', TRUE), ('Personal', FALSE), ('Emergency', TRUE), ('Other', FALSE);
 
 INSERT INTO compliance_rules (rule_name, max_hours_without_break, daily_overtime_threshold, weekly_overtime_threshold) VALUES
-('Standard AU Rule', 5, 8, 38);
+('Standard AU Rule', 5, 8, 38),
+('PID Break Rule', 4, 8, 38);
 
 -- Sam: clocks in, forgets to clock out (demonstrates a missing clock-out exception)
 INSERT INTO time_events (staff_id, station_id, event_type, event_timestamp, captured_at, synced_at, created_by, rule_id) VALUES
@@ -39,6 +40,19 @@ INSERT INTO time_events (staff_id, station_id, event_type, event_timestamp, capt
 INSERT INTO breaks (event_id, reason_id, note)
 SELECT event_id, 1, 'Lunch' FROM time_events WHERE staff_id = 2 AND event_type = 'break_start';
 
+-- Exceptions: stored records that a manager can review
+INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, manager_notified, notes)
+SELECT 1, event_id, NULL, 'Missing clock-out', FALSE, 'Clocked in 07:02, no clock-out recorded'
+FROM time_events WHERE staff_id = 1 AND event_type = 'clock_in';
+
+INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, manager_notified, notes)
+SELECT 2, event_id, 2, 'Break overdue', TRUE, 'Break started 4h02m after clock-in, over the 4 hour limit'
+FROM time_events WHERE staff_id = 2 AND event_type = 'break_start';
+
+INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, manager_notified, notes)
+SELECT 3, event_id, NULL, 'Clocked in at wrong station', TRUE, 'Rostered at Packing Shed, clocked in at Main Gate'
+FROM time_events WHERE staff_id = 3 AND event_type = 'clock_in';
+
 -- Verification: confirm row counts match expectations
 SELECT 'staff' AS tbl, COUNT(*) FROM staff
 UNION ALL
@@ -52,4 +66,6 @@ SELECT 'stations', COUNT(*) FROM stations
 UNION ALL
 SELECT 'break_reasons', COUNT(*) FROM break_reasons
 UNION ALL
-SELECT 'compliance_rules', COUNT(*) FROM compliance_rules;
+SELECT 'compliance_rules', COUNT(*) FROM compliance_rules
+UNION ALL
+SELECT 'exceptions', COUNT(*) FROM exceptions;
