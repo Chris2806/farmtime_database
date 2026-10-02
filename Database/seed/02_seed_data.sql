@@ -1,6 +1,3 @@
--- 02_seed_data.sql  |  Sprint 2 expanded seed (Phase 3 Step 9)
--- 20 staff, 2 fortnights of rosters and clock events (31 Aug - 27 Sep 2026), plus a 'today' block for the daily views.
--- Contains deliberate exceptions, amendments, audit rows and two pay periods.
 
 TRUNCATE TABLE public_holidays, exceptions, time_adjustments, breaks, payroll_summary, time_events, compliance_rules, roster, break_reasons, stations, staff, audit_logs RESTART IDENTITY CASCADE;
 
@@ -1413,16 +1410,16 @@ FROM time_events WHERE event_type = 'break_start';
 
 -- Stored exceptions for the two fortnights
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 9, event_id, None, 'Missing clock-out', '2026-09-03', 'Resolved', TRUE, '2026-09-03 18:00:00', 'Linh Tran clocked in 08:07, no clock-out recorded'
+SELECT 9, event_id, NULL, 'Missing clock-out', '2026-09-03', 'Resolved', TRUE, '2026-09-03 18:00:00', 'Linh Tran clocked in 08:07, no clock-out recorded'
 FROM time_events WHERE staff_id = 9 AND event_type = 'clock_in' AND event_timestamp = '2026-09-03 08:07:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 14, event_id, None, 'Missing clock-out', '2026-09-10', 'Resolved', TRUE, '2026-09-10 18:00:00', 'Hamza Ali clocked in 07:03, no clock-out recorded'
+SELECT 14, event_id, NULL, 'Missing clock-out', '2026-09-10', 'Resolved', TRUE, '2026-09-10 18:00:00', 'Hamza Ali clocked in 07:03, no clock-out recorded'
 FROM time_events WHERE staff_id = 14 AND event_type = 'clock_in' AND event_timestamp = '2026-09-10 07:03:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 8, event_id, None, 'Missing clock-out', '2026-09-24', 'Reviewed', TRUE, '2026-09-24 18:00:00', 'Tom Brennan clocked in 07:08, no clock-out recorded'
+SELECT 8, event_id, NULL, 'Missing clock-out', '2026-09-24', 'Reviewed', TRUE, '2026-09-24 18:00:00', 'Tom Brennan clocked in 07:08, no clock-out recorded'
 FROM time_events WHERE staff_id = 8 AND event_type = 'clock_in' AND event_timestamp = '2026-09-24 07:08:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 16, event_id, None, 'Missing clock-out', '2026-09-18', 'Open', FALSE, '2026-09-18 18:00:00', 'Nathan Wong clocked in 06:56, no clock-out recorded'
+SELECT 16, event_id, NULL, 'Missing clock-out', '2026-09-18', 'Open', FALSE, '2026-09-18 18:00:00', 'Nathan Wong clocked in 06:56, no clock-out recorded'
 FROM time_events WHERE staff_id = 16 AND event_type = 'clock_in' AND event_timestamp = '2026-09-18 06:56:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
 SELECT 7, event_id, 2, 'Break overdue', '2026-09-01', 'Resolved', TRUE, '2026-09-01 18:00:00', 'Break started 4h15m after clock-in, over the 4 hour limit'
@@ -1440,22 +1437,22 @@ INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_d
 SELECT 15, event_id, 2, 'Break overdue', '2026-09-16', 'Reviewed', TRUE, '2026-09-16 18:00:00', 'Break started 4h12m after clock-in, over the 4 hour limit'
 FROM time_events WHERE staff_id = 15 AND event_type = 'break_start' AND event_timestamp = '2026-09-16 12:12:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 14, event_id, None, 'Unrostered attempt', '2026-09-14', 'Reviewed', TRUE, '2026-09-14 18:00:00', 'Hamza Ali clocked in with no rostered shift; allowed and flagged'
+SELECT 14, event_id, NULL, 'Unrostered attempt', '2026-09-14', 'Reviewed', TRUE, '2026-09-14 18:00:00', 'Hamza Ali clocked in with no rostered shift; allowed and flagged'
 FROM time_events WHERE staff_id = 14 AND event_type = 'clock_in' AND event_timestamp = '2026-09-14 07:31:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 19, event_id, None, 'Unrostered attempt', '2026-09-16', 'Resolved', TRUE, '2026-09-16 18:00:00', 'Sofia Rossi clocked in with no rostered shift; allowed and flagged'
+SELECT 19, event_id, NULL, 'Unrostered attempt', '2026-09-16', 'Resolved', TRUE, '2026-09-16 18:00:00', 'Sofia Rossi clocked in with no rostered shift; allowed and flagged'
 FROM time_events WHERE staff_id = 19 AND event_type = 'clock_in' AND event_timestamp = '2026-09-16 08:29:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 12, event_id, None, 'Unrostered attempt', '2026-09-19', 'Open', TRUE, '2026-09-19 18:00:00', 'Ben Carter clocked in with no rostered shift; allowed and flagged'
+SELECT 12, event_id, NULL, 'Unrostered attempt', '2026-09-19', 'Open', TRUE, '2026-09-19 18:00:00', 'Ben Carter clocked in with no rostered shift; allowed and flagged'
 FROM time_events WHERE staff_id = 12 AND event_type = 'clock_in' AND event_timestamp = '2026-09-19 07:11:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 7, event_id, None, 'Clocked in at wrong station', '2026-09-09', 'Resolved', TRUE, '2026-09-09 18:00:00', 'Rostered at Main Gate, clocked in at Packing Shed'
+SELECT 7, event_id, NULL, 'Clocked in at wrong station', '2026-09-09', 'Resolved', TRUE, '2026-09-09 18:00:00', 'Rostered at Main Gate, clocked in at Packing Shed'
 FROM time_events WHERE staff_id = 7 AND event_type = 'clock_in' AND event_timestamp = '2026-09-09 07:02:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 17, event_id, None, 'Clocked in at wrong station', '2026-09-11', 'Reviewed', TRUE, '2026-09-11 18:00:00', 'Rostered at Cold Room, clocked in at Main Gate'
+SELECT 17, event_id, NULL, 'Clocked in at wrong station', '2026-09-11', 'Reviewed', TRUE, '2026-09-11 18:00:00', 'Rostered at Cold Room, clocked in at Main Gate'
 FROM time_events WHERE staff_id = 17 AND event_type = 'clock_in' AND event_timestamp = '2026-09-11 09:07:00';
 INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, exception_date, status, manager_notified, detected_at, notes)
-SELECT 11, event_id, None, 'Clocked in at wrong station', '2026-09-14', 'Open', TRUE, '2026-09-14 18:00:00', 'Rostered at Packing Shed, clocked in at Main Gate'
+SELECT 11, event_id, NULL, 'Clocked in at wrong station', '2026-09-14', 'Open', TRUE, '2026-09-14 18:00:00', 'Rostered at Packing Shed, clocked in at Main Gate'
 FROM time_events WHERE staff_id = 11 AND event_type = 'clock_in' AND event_timestamp = '2026-09-14 08:08:00';
 
 -- Today's exceptions
