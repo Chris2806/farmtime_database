@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS time_adjustments CASCADE;
 DROP TABLE IF EXISTS exceptions CASCADE;
 DROP TABLE IF EXISTS audit_logs CASCADE;
 DROP TABLE IF EXISTS payroll_summary CASCADE;
@@ -56,6 +57,9 @@ CREATE TABLE time_events (
     synced_at TIMESTAMP,
     is_override BOOLEAN DEFAULT FALSE,
     override_reason VARCHAR(200),
+    override_method VARCHAR(20) CHECK (override_method IN ('Admin Portal','Supervisor PIN')),
+    is_unrostered BOOLEAN DEFAULT FALSE,
+    sync_status VARCHAR(20) NOT NULL DEFAULT 'Synced' CHECK (sync_status IN ('Pending','Synced','Failed')),
     created_by VARCHAR(50),
     rule_id INT REFERENCES compliance_rules(rule_id)
 );
@@ -99,7 +103,26 @@ CREATE TABLE exceptions (
     manager_notified BOOLEAN DEFAULT FALSE,
     detected_at TIMESTAMP DEFAULT now(),
     notes VARCHAR(200)
-);git status
+);
+
+CREATE TABLE time_adjustments (
+    adjustment_id SERIAL PRIMARY KEY,
+    staff_id INT NOT NULL REFERENCES staff(staff_id),
+    event_id INT REFERENCES time_events(event_id),
+    action VARCHAR(10) NOT NULL CHECK (action IN ('ADD','EDIT','DELETE')),
+    old_timestamp TIMESTAMP,
+    new_timestamp TIMESTAMP,
+    reason VARCHAR(200) NOT NULL,
+    override_method VARCHAR(20) CHECK (override_method IN ('Admin Portal','Supervisor PIN')),
+    requested_by VARCHAR(50) NOT NULL,
+    requested_at TIMESTAMP NOT NULL DEFAULT now(),
+    approver VARCHAR(50),
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending','Approved','Rejected')),
+    decided_at TIMESTAMP,
+    CHECK (status = 'Pending' OR (approver IS NOT NULL AND decided_at IS NOT NULL)),
+    CHECK (approver IS NULL OR approver <> requested_by)
+);
+
 
 CREATE TABLE audit_logs (
     audit_id SERIAL PRIMARY KEY,
@@ -108,5 +131,6 @@ CREATE TABLE audit_logs (
     action VARCHAR(20) NOT NULL CHECK (action IN ('INSERT','UPDATE','DELETE')),
     reason VARCHAR(200) NOT NULL,
     changed_by VARCHAR(50) NOT NULL,
-    changed_at TIMESTAMP DEFAULT now()
+    changed_at TIMESTAMP DEFAULT now(),
+    adjustment_id INT REFERENCES time_adjustments(adjustment_id)
 );
