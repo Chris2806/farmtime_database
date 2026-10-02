@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS compliance_rules CASCADE;
 DROP TABLE IF EXISTS roster CASCADE;
 DROP TABLE IF EXISTS stations CASCADE;
 DROP TABLE IF EXISTS staff CASCADE;
+DROP TABLE IF EXISTS public_holidays CASCADE;
 
 
 CREATE TABLE staff (
@@ -96,6 +97,13 @@ CREATE TABLE breaks (
 );
 
 
+CREATE TABLE public_holidays (
+    holiday_id SERIAL PRIMARY KEY,
+    holiday_date DATE NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL
+);
+
+
 CREATE TABLE payroll_summary (
     payroll_id SERIAL PRIMARY KEY,
     staff_id INT NOT NULL REFERENCES staff(staff_id),
@@ -103,7 +111,11 @@ CREATE TABLE payroll_summary (
     period_end DATE NOT NULL,
     ordinary_hours DECIMAL(6,2),
     overtime_hours DECIMAL(6,2),
-    total_pay DECIMAL(10,2)
+    weekend_hours DECIMAL(6,2) NOT NULL DEFAULT 0,
+    public_holiday_hours DECIMAL(6,2) NOT NULL DEFAULT 0,
+    penalty_flag BOOLEAN GENERATED ALWAYS AS (weekend_hours > 0 OR public_holiday_hours > 0) STORED,
+    total_pay DECIMAL(10,2),
+    CHECK (period_end >= period_start)
 );
 
 
