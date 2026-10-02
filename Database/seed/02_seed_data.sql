@@ -1,4 +1,4 @@
-TRUNCATE TABLE exceptions, breaks, payroll_summary, time_events, compliance_rules, roster, break_reasons, stations, staff, audit_logs RESTART IDENTITY CASCADE;
+TRUNCATE TABLE exceptions, time_adjustments, breaks, payroll_summary, time_events, compliance_rules, roster, break_reasons, stations, staff, audit_logs RESTART IDENTITY CASCADE;
 
 INSERT INTO stations (name, location, id_type) VALUES
 ('Main Gate', 'Farm Entrance', 'QR'),
@@ -53,6 +53,30 @@ INSERT INTO exceptions (staff_id, event_id, rule_id, exception_type, manager_not
 SELECT 3, event_id, NULL, 'Clocked in at wrong station', TRUE, 'Rostered at Packing Shed, clocked in at Main Gate'
 FROM time_events WHERE staff_id = 3 AND event_type = 'clock_in';
 
+-- Mark events that never reached the server as pending sync
+UPDATE time_events SET sync_status = 'Pending' WHERE synced_at IS NULL;
+
+-- Pending request: Sam forgot to clock out, waiting for manager approval
+INSERT INTO time_adjustments (staff_id, event_id, action, new_timestamp, reason, override_method, requested_by)
+SELECT 1, event_id, 'ADD', CURRENT_DATE + TIME '15:30', 'Forgot to clock out, confirmed with supervisor', 'Admin Portal', 'Office Admin'
+FROM time_events WHERE staff_id = 1 AND event_type = 'clock_in';
+
+-- Approved request: Jess's clock-out time corrected
+INSERT INTO time_adjustments (staff_id, event_id, action, old_timestamp, new_timestamp, reason, override_method, requested_by, approver, status, decided_at)
+SELECT 2, event_id, 'EDIT', event_timestamp, CURRENT_DATE + TIME '15:00', 'Corrected clock-out time after supervisor check', 'Admin Portal', 'Office Admin', 'Farm Manager', 'Approved', CURRENT_DATE + TIME '15:30'
+FROM time_events WHERE staff_id = 2 AND event_type = 'clock_out';
+
+-- Apply the approved change to the clock event
+UPDATE time_events
+SET event_timestamp = CURRENT_DATE + TIME '15:00', is_override = TRUE,
+    override_reason = 'Corrected clock-out time after supervisor check', override_method = 'Admin Portal'
+WHERE staff_id = 2 AND event_type = 'clock_out';
+
+-- Audit trail for every approved adjustment
+INSERT INTO audit_logs (table_name, record_id, action, reason, changed_by, adjustment_id)
+SELECT 'time_events', event_id, 'UPDATE', reason, approver, adjustment_id
+FROM time_adjustments WHERE status = 'Approved';
+
 -- Verification: confirm row counts match expectations
 SELECT 'staff' AS tbl, COUNT(*) FROM staff
 UNION ALL
@@ -68,4 +92,8 @@ SELECT 'break_reasons', COUNT(*) FROM break_reasons
 UNION ALL
 SELECT 'compliance_rules', COUNT(*) FROM compliance_rules
 UNION ALL
-SELECT 'exceptions', COUNT(*) FROM exceptions;
+SELECT 'exceptions', COUNT(*) FROM exceptions
+UNION ALL
+SELECT 'time_adjustments', COUNT(*) FROM time_adjustments
+UNION ALL
+SELECT 'audit_logs', COUNT(*) FROM audit_logs;
