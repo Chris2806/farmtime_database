@@ -1,4 +1,4 @@
-TRUNCATE TABLE exceptions, time_adjustments, breaks, payroll_summary, time_events, compliance_rules, roster, break_reasons, stations, staff, audit_logs RESTART IDENTITY CASCADE;
+TRUNCATE TABLE public_holidays, exceptions, time_adjustments, breaks, payroll_summary, time_events, compliance_rules, roster, break_reasons, stations, staff, audit_logs RESTART IDENTITY CASCADE;
 
 INSERT INTO stations (name, location, id_type) VALUES
 ('Main Gate', 'Farm Entrance', 'QR'),
@@ -90,6 +90,22 @@ UPDATE staff SET registration_pin = '482916', pin_expires_at = now() + interval 
 
 UPDATE roster SET team = 'Orchard', site = 'Main Farm' WHERE staff_id IN (1, 2);
 UPDATE roster SET team = 'Packing', site = 'Shed 2' WHERE staff_id = 3;
+
+-- Phase 3 Step 7: public holiday and one seeded fortnightly pay period
+INSERT INTO public_holidays (holiday_date, name) VALUES
+('2026-10-05', 'Labour Day');
+
+INSERT INTO payroll_summary (staff_id, period_start, period_end, ordinary_hours, overtime_hours, weekend_hours, public_holiday_hours) VALUES
+(1, '2026-09-28', '2026-10-11', 52, 6, 8, 0),
+(2, '2026-09-28', '2026-10-11', 60, 8, 8, 7.5),
+(3, '2026-09-28', '2026-10-11', 40, 0, 0, 0);
+
+-- PoC pay rule: penalty hours are paid at the overtime rate (exact award rates are a later phase)
+UPDATE payroll_summary p
+SET total_pay = p.ordinary_hours * s.standard_rate
+              + (p.overtime_hours + p.weekend_hours + p.public_holiday_hours) * s.overtime_rate
+FROM staff s
+WHERE s.staff_id = p.staff_id;
 
 -- Verification: confirm row counts match expectations
 SELECT 'staff' AS tbl, COUNT(*) FROM staff
