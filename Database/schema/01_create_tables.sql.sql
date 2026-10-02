@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS exceptions CASCADE;
 DROP TABLE IF EXISTS audit_logs CASCADE;
 DROP TABLE IF EXISTS payroll_summary CASCADE;
 DROP TABLE IF EXISTS breaks CASCADE;
@@ -81,6 +82,24 @@ CREATE TABLE payroll_summary (
     overtime_hours DECIMAL(6,2),
     total_pay DECIMAL(10,2)
 );
+
+CREATE TABLE exceptions (
+    exception_id SERIAL PRIMARY KEY,
+    staff_id INT NOT NULL REFERENCES staff(staff_id),
+    event_id INT REFERENCES time_events(event_id),
+    rule_id INT REFERENCES compliance_rules(rule_id),
+    exception_type VARCHAR(40) NOT NULL CHECK (exception_type IN (
+        'Missing clock-out',
+        'Break overdue',
+        'Unrostered attempt',
+        'Clocked in at wrong station'
+    )),
+    exception_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    status VARCHAR(20) NOT NULL DEFAULT 'Open' CHECK (status IN ('Open','Reviewed','Resolved')),
+    manager_notified BOOLEAN DEFAULT FALSE,
+    detected_at TIMESTAMP DEFAULT now(),
+    notes VARCHAR(200)
+);git status
 
 CREATE TABLE audit_logs (
     audit_id SERIAL PRIMARY KEY,
