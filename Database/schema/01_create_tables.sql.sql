@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS roster CASCADE;
 DROP TABLE IF EXISTS stations CASCADE;
 DROP TABLE IF EXISTS staff CASCADE;
 
+
 CREATE TABLE staff (
     staff_id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -20,8 +21,18 @@ CREATE TABLE staff (
     standard_rate DECIMAL(8,2) NOT NULL,
     overtime_rate DECIMAL(8,2) NOT NULL,
     credential_ref VARCHAR(100),
-    created_at TIMESTAMP DEFAULT now()
+    system_role VARCHAR(20) NOT NULL DEFAULT 'Worker' CHECK (system_role IN ('Office Admin','Roster Admin','Manager/Supervisor','Worker')),
+    hours_type VARCHAR(10) NOT NULL DEFAULT 'Weekly' CHECK (hours_type IN ('Weekly','Patterned')),
+    pattern_days VARCHAR(30),
+    pattern_start TIME,
+    pattern_end TIME,
+    registration_pin VARCHAR(10),
+    pin_expires_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT now(),
+    CHECK (hours_type = 'Weekly' OR (pattern_days IS NOT NULL AND pattern_start IS NOT NULL AND pattern_end IS NOT NULL)),
+    CHECK (registration_pin IS NULL OR pin_expires_at IS NOT NULL)
 );
+
 
 CREATE TABLE stations (
     station_id SERIAL PRIMARY KEY,
@@ -30,14 +41,18 @@ CREATE TABLE stations (
     id_type VARCHAR(20) CHECK (id_type IN ('QR','PIN','Face','Fingerprint'))
 );
 
+
 CREATE TABLE roster (
     roster_id SERIAL PRIMARY KEY,
     staff_id INT NOT NULL REFERENCES staff(staff_id),
     shift_date DATE NOT NULL,
     start_time TIME NOT NULL,
     expected_hours DECIMAL(4,2) NOT NULL,
+    team VARCHAR(50),
+    site VARCHAR(50),
     station_id INT REFERENCES stations(station_id)
 );
+
 
 CREATE TABLE compliance_rules (
     rule_id SERIAL PRIMARY KEY,
@@ -46,6 +61,7 @@ CREATE TABLE compliance_rules (
     daily_overtime_threshold DECIMAL(4,2),
     weekly_overtime_threshold DECIMAL(4,2)
 );
+
 
 CREATE TABLE time_events (
     event_id SERIAL PRIMARY KEY,
@@ -64,11 +80,13 @@ CREATE TABLE time_events (
     rule_id INT REFERENCES compliance_rules(rule_id)
 );
 
+
 CREATE TABLE break_reasons (
     reason_id SERIAL PRIMARY KEY,
     label VARCHAR(30) NOT NULL,
     is_paid BOOLEAN DEFAULT FALSE
 );
+
 
 CREATE TABLE breaks (
     break_id SERIAL PRIMARY KEY,
@@ -76,6 +94,7 @@ CREATE TABLE breaks (
     reason_id INT REFERENCES break_reasons(reason_id),
     note VARCHAR(200)
 );
+
 
 CREATE TABLE payroll_summary (
     payroll_id SERIAL PRIMARY KEY,
@@ -86,6 +105,7 @@ CREATE TABLE payroll_summary (
     overtime_hours DECIMAL(6,2),
     total_pay DECIMAL(10,2)
 );
+
 
 CREATE TABLE exceptions (
     exception_id SERIAL PRIMARY KEY,
@@ -104,6 +124,7 @@ CREATE TABLE exceptions (
     detected_at TIMESTAMP DEFAULT now(),
     notes VARCHAR(200)
 );
+
 
 CREATE TABLE time_adjustments (
     adjustment_id SERIAL PRIMARY KEY,
