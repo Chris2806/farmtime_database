@@ -1,0 +1,29 @@
+--This is to verify the Row counts 
+
+SELECT 'staff' AS tbl, COUNT(*) AS row_count FROM staff
+UNION ALL SELECT 'stations', COUNT(*) FROM stations
+UNION ALL SELECT 'roster', COUNT(*) FROM roster
+UNION ALL SELECT 'time_events', COUNT(*) FROM time_events
+UNION ALL SELECT 'breaks', COUNT(*) FROM breaks
+UNION ALL SELECT 'break_reasons', COUNT(*) FROM break_reasons
+UNION ALL SELECT 'compliance_rules', COUNT(*) FROM compliance_rules
+UNION ALL SELECT 'exceptions', COUNT(*) FROM exceptions
+UNION ALL SELECT 'time_adjustments', COUNT(*) FROM time_adjustments
+UNION ALL SELECT 'audit_logs', COUNT(*) FROM audit_logs
+UNION ALL SELECT 'public_holidays', COUNT(*) FROM public_holidays
+UNION ALL SELECT 'payroll_runs', COUNT(*) FROM payroll_runs
+UNION ALL SELECT 'payroll_summary', COUNT(*) FROM payroll_summary
+UNION ALL SELECT 'leave_requests', COUNT(*) FROM leave_requests;
+
+--This is to verify the exception cases
+
+SELECT exception_type, COUNT(*) AS cases
+FROM exceptions
+GROUP BY exception_type
+ORDER BY exception_type;
+
+-- This s to verify the Breaks without end
+
+SELECT COUNT(*) AS breaks_without_end
+FROM breaks
+WHERE end_event_id IS NULL;
