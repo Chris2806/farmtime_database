@@ -1586,9 +1586,21 @@ SET run_id = r.run_id
 FROM payroll_runs r
 WHERE p.period_start = r.period_start AND p.period_end = r.period_end;
 
--- PoC pay rule: penalty hours are paid at the overtime rate (exact award rates are a later phase)
+-- PoC pay rules:
+-- 1. Ordinary hours are capped at 76 per fortnight (38 hours x 2 weeks);
+--    anything above that is moved into overtime.
+-- 2. Weekend and public holiday hours are paid at the overtime rate.
+--    Exact award rates are a later phase.
+UPDATE payroll_summary
+SET overtime_hours = overtime_hours + (ordinary_hours - 76),
+    ordinary_hours = 76
+WHERE ordinary_hours > 76;
+
 UPDATE payroll_summary p
-SET total_pay = p.ordinary_hours * s.standard_rate + (p.overtime_hours + p.weekend_hours + p.public_holiday_hours) * s.overtime_rate
+SET total_pay = ROUND(
+        p.ordinary_hours * s.standard_rate
+      + (p.overtime_hours + p.weekend_hours + p.public_holiday_hours) * s.overtime_rate
+    , 2)
 FROM staff s
 WHERE s.staff_id = p.staff_id;
 
