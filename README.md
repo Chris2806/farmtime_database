@@ -74,4 +74,4 @@ Things to know:
 
 ## Team
 
-Group 4, Farm Time Management Group. <add names>
+Group 4, Farm Time Management Group. Chris Francis
