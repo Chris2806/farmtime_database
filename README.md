@@ -1,6 +1,6 @@
 # Farm Time Management System: Database (Sprint 2)
 
-This branch holds the final database design for the Farm Time Management System, Group 4. It replaces the Sprint 1 schema with the updated ERD, and the test data now matches that design. The Sprint 1 version is kept under the `v2.0-sprint1` tag if you need to compare.
+This branch holds the final database design for the Farm Time Management System, Group 4. It replaces the Sprint 1 schema with the updated ERD, and the test data now matches that design. 
 
 The database is PostgreSQL.
 
